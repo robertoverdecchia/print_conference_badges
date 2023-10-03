@@ -55,10 +55,27 @@ def create_badges(csv_file, png_file):
         affiliation = row['affiliation']
         font_size_affiliation = 14
         c.setFont("Helvetica", font_size_affiliation)
-        while c.stringWidth(affiliation, "Helvetica", font_size_affiliation) > badge_width - cm_to_points(0.8):  # Leave 4mm space on both sides
-            font_size_affiliation -= 1
-            c.setFont("Helvetica", font_size_affiliation)
-        c.drawCentredString(x + badge_width / 2, y + badge_height / 2 - 10, affiliation)
+        if len(affiliation) > 40:  # If the affiliation is too long, split it into two lines
+            # Break the affiliation at the last space before the 40th character
+            split_index = affiliation.rfind(' ', 0, 40)
+            if split_index == -1:  # If there's no space to break at, just split at the 40th character
+                split_index = 40
+            affiliation_line1, affiliation_line2 = affiliation[:split_index], affiliation[split_index+1:]
+            # Increase the font size for the affiliation if it's split into two lines
+            while c.stringWidth(affiliation_line1, "Helvetica", font_size_affiliation) < badge_width - cm_to_points(0.8) and c.stringWidth(affiliation_line2, "Helvetica", font_size_affiliation) < badge_width - cm_to_points(0.8):  # Leave 4mm space on both sides
+                font_size_affiliation += 1
+                c.setFont("Helvetica", font_size_affiliation)
+            # Ensure the text size stays within the specified borders
+            while c.stringWidth(affiliation_line1, "Helvetica", font_size_affiliation) > badge_width - cm_to_points(0.8) or c.stringWidth(affiliation_line2, "Helvetica", font_size_affiliation) > badge_width - cm_to_points(0.8):  # Leave 4mm space on both sides
+                font_size_affiliation -= 1
+                c.setFont("Helvetica", font_size_affiliation)
+            c.drawCentredString(x + badge_width / 2, y + badge_height / 2 - 10, affiliation_line1)
+            c.drawCentredString(x + badge_width / 2, y + badge_height / 2 - 20, affiliation_line2)
+        else:
+            while c.stringWidth(affiliation, "Helvetica", font_size_affiliation) > badge_width - cm_to_points(0.8):  # Leave 4mm space on both sides
+                font_size_affiliation -= 1
+                c.setFont("Helvetica", font_size_affiliation)
+            c.drawCentredString(x + badge_width / 2, y + badge_height / 2 - 10, affiliation)
 
         # If we have reached the maximum number of badges per page, start a new page
         if (i + 1) % badges_per_page == 0:
